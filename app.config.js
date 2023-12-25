@@ -19,6 +19,7 @@ export default {
       supportsTablet: true,
     },
     android: {
+      package: "com.noman01.ganisacademy",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
