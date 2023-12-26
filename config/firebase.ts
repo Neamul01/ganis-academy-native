@@ -1,7 +1,12 @@
 import { initializeApp } from "firebase/app";
 import Constants from "expo-constants";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const apiKey = Constants.expoConfig?.extra?.apiKey;
 const authDomain = Constants.expoConfig?.extra?.authDomain;
@@ -22,11 +27,11 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
-
-// Export the Firebase modules
-export const auth = getAuth();
-export const database = getFirestore();
+const app = initializeApp(firebaseConfig);
+export const database = getFirestore(app);
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 // export const auth = getAuth();
 // export const database = getFirestore();
