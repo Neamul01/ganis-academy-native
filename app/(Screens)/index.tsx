@@ -1,57 +1,59 @@
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-} from "firebase/firestore";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { GiftedChat } from "react-native-gifted-chat";
-import { database } from "../../config/firebase";
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import { auth, database } from "../../config/firebase";
+
+interface IUser {
+  _id: string;
+  name: string;
+  avatar: string;
+}
+
+interface IMessage {
+  _id: string;
+  text: string;
+  createdAt: Date;
+  user: IUser;
+}
 
 export default function TabOneScreen() {
-  const [messages, setMessages] = useState<any>([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
 
   useLayoutEffect(() => {
     const collectionRef = collection(database, "chats");
     const q = query(collectionRef, orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log("snapshot");
       setMessages(
         snapshot.docs.map((doc) => ({
           _id: doc.id,
-          createdAt: doc.data().createdAt,
+          createdAt: doc.data().createdAt.toDate(),
           text: doc.data().text,
-          user: doc.data().user,
+          user: doc.data().user as IUser,
         }))
       );
-      return () => unsubscribe();
     });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello developer",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native",
-          avatar: "https://placeimg.com/140/140/any",
-        },
-      },
-    ]);
-  }, []);
-
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages: any) =>
+  const onSend = useCallback((messages: IMessage[] = []) => {
+    setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, messages)
     );
 
     const { _id, createdAt, text, user } = messages[0];
-
     addDoc(collection(database, "chats"), {
       _id,
       createdAt,
@@ -63,9 +65,16 @@ export default function TabOneScreen() {
   return (
     <GiftedChat
       messages={messages}
-      onSend={(messages) => onSend(messages as any)}
+      onSend={(messages) => onSend(messages as IMessage[])}
+      messagesContainerStyle={{
+        backgroundColor: "#fff",
+      }}
+      imageStyle={{
+        borderWidth: 1,
+      }}
       user={{
-        _id: 1,
+        _id: auth.currentUser?.email || "unknown",
+        avatar: "https://i.pravatar.cc/300",
       }}
     />
   );
